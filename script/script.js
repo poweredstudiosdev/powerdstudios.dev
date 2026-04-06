@@ -32,15 +32,71 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   rvs.forEach(el => io.observe(el));
 
   // Form
-  function sf(){
-    const n=document.getElementById('fn').value.trim(),
-          e=document.getElementById('fe').value.trim(),
-          m=document.getElementById('fm').value.trim(),
-          fb=document.getElementById('ffb');
-    if(!n||!e||!m){ fb.style.color='#ff6060'; fb.textContent='Please fill in all required fields.'; return; }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){ fb.style.color='#ff6060'; fb.textContent='Invalid email address.'; return; }
-    const sub=encodeURIComponent('Inquiry — '+n+' via poweredstudios.dev');
-    const body=encodeURIComponent('Name: '+n+'\nEmail: '+e+'\n\n'+m);
-    window.location.href='mailto:poweredstudios.dev@gmail.com?subject='+sub+'&body='+body;
-    fb.style.color='#00c2ff'; fb.textContent='✓ Opening email client…';
+  // function sf(){
+  //   const n=document.getElementById('fn').value.trim(),
+  //         e=document.getElementById('fe').value.trim(),
+  //         m=document.getElementById('fm').value.trim(),
+  //         fb=document.getElementById('ffb');
+  //   if(!n||!e||!m){ fb.style.color='#ff6060'; fb.textContent='Please fill in all required fields.'; return; }
+  //   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){ fb.style.color='#ff6060'; fb.textContent='Invalid email address.'; return; }
+  //   const sub=encodeURIComponent('Inquiry — '+n+' via poweredstudios.dev');
+  //   const body=encodeURIComponent('Name: '+n+'\nEmail: '+e+'\n\n'+m);
+  //   window.location.href='mailto:poweredstudios.dev@gmail.com?subject='+sub+'&body='+body;
+  //   fb.style.color='#00c2ff'; fb.textContent='✓ Opening email client…';
+  // }
+
+  async function sf() {
+    // Get all field values
+    const n = document.getElementById('fn').value.trim(),
+         p = document.getElementById('fp').value.trim(), // Added phone
+         e = document.getElementById('fe').value.trim(),
+         m = document.getElementById('fm').value.trim(),
+         fb = document.getElementById('ffb');
+
+    // Simple Validation
+    if (!n || !e || !m) { 
+      fb.style.color = '#ff6060'; 
+      fb.textContent = 'Please fill in all required fields.'; 
+      return; 
+    }
+  
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { 
+      fb.style.color = '#ff6060'; 
+      fb.textContent = 'Invalid email address.'; 
+      return; 
+    }
+
+    // Update UI to show progress
+    fb.style.color = '#00c2ff';
+    fb.textContent = 'Sending...';
+
+    try {
+      const response = await fetch("https://formspree.io/f/mpqoknog", {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: n,
+          phone: p,   // Included phone in the payload
+          email: e,
+          message: m
+        })
+      });
+
+      if (response.ok) {
+        fb.style.color = '#00ff88';
+        fb.textContent = '✓ Message sent successfully!';
+      
+        // Reset the inputs
+        ['fn', 'fp', 'fe', 'fm'].forEach(id => document.getElementById(id).value = '');
+      } else {
+        fb.style.color = '#ff6060';
+        fb.textContent = 'Submission failed. Please try again.';
+      }
+    } catch (error) {
+      fb.style.color = '#ff6060';
+      fb.textContent = 'Server error. Check your connection.';
+    }
   }
